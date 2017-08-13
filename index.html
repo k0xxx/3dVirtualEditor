@@ -3,6 +3,7 @@
 	<head>
 		<title>STL-Viewer</title>
 		<meta charset="utf-8">
+		<link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
@@ -27,8 +28,11 @@
 		<script src="STLLoader.js"></script>
 		<script src="Detector.js"></script>
 		<script>
-			var stlFiles = [];
-			//var stlFile[{'name': 'Имя файла', 'url': 'url'}];
+			//var stlFiles = [];
+			var stlFiles = [
+				{'name': 'up', 'url': 'models/up.stl'},
+				{'name': 'low', 'url': 'models/low.stl'},
+			];
 		</script>
 		<script src="stlViewer.js"></script>
 	</body>
