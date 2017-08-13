@@ -145,8 +145,8 @@ function addLight(){
 	scene.add(directionalLight7)
 }
 
-addToMainMesh({url: 'models/up.stl', name: 'up'});
-addToMainMesh({url: 'models/low.stl', name: 'low'});
+//addToMainMesh({url: 'models/up.stl', name: 'up'});
+//addToMainMesh({url: 'models/low.stl', name: 'low'});
 // Добавление файла в MainMesh
 function addToMainMesh(stlFile){
 	var loader = new THREE.STLLoader();
