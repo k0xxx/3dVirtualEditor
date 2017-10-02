@@ -14,7 +14,7 @@ function init(){
 	
 	// Обьявление камеры
 	camera = new THREE.PerspectiveCamera(45, rendererContainer.clientWidth / rendererContainer.clientHeight, 1, 1000);
-	camera.position.set(-100, 100, 100);
+	camera.position.set(-75, 75, 75);
 	camera.lookAt(scene.position);
 	
 	// Добавление осей координат (Опционально)
