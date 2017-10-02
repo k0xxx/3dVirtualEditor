@@ -27,10 +27,23 @@ function init(){
 	renderer.setClearColor(0x423C63);
 
 	// Добавление управления
-	controls = new THREE.OrbitControls( camera, renderer.domElement );
+	/*controls = new THREE.OrbitControls( camera, renderer.domElement );
 	controls.addEventListener( 'change', render );
-	controls.enableZoom = true;
+	controls.enableZoom = true;*/
 	
+	controls = new THREE.TrackballControls( camera );
+	controls.rotateSpeed = 4.0;
+	controls.zoomSpeed = 4.0;
+	controls.panSpeed = 0.8;
+	controls.noZoom = false;
+	controls.noPan = false;
+	controls.staticMoving = true;
+	controls.dynamicDampingFactor = 0.3;
+	controls.keys = [ 65, 83, 68 ];
+	controls.addEventListener( 'change', render );
+
+
+
 	//Добавление источников света
 	addLight();
 
@@ -57,16 +70,17 @@ function render() {
 function animate () {
 	requestAnimationFrame( animate );
 	renderer.render(scene, camera);
+	controls.update();
 };
 
 // Добавить файл c локального диска
 function getFile() {
-	var file = document.getElementById('stl-file-upload').files[0];
+	var file = document.getElementById('stlFile').files[0];
 	var reader = new FileReader();
 
 	reader.onloadend = function (file) {
 		addFile(reader.result, reader.fileName);
-		document.getElementById('stl-file-upload').value = '';
+		document.getElementById('stlFile').value = '';
 	}
 		
 	if (file) {
@@ -137,11 +151,21 @@ function addToMainMesh(stlFile){
 // Создание меша с именем
 function createNamedMesh(meshName){
 	return function(geometry) {
+		console.log(geometry);
+		
+		geometry.computeBoundingSphere();
+
 		var material = new THREE.MeshPhongMaterial({color: 0xFF8243, specular: 0x111111, shininess: 200});
 		
 		var mesh = new THREE.Mesh(geometry, material);
 		mainGroup.add(mesh);
-		mesh.rotation.set(-Math.PI/2, 0, Math.PI);
+
+		/*var geometry1 = new THREE.SphereGeometry( 5, 32, 32 );
+		var material1 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		var sphere1 = new THREE.Mesh( geometry1, material1 );
+		mainGroup.add( sphere1 );*/
+
+		//mesh.rotation.set(-Math.PI/2, 0, Math.PI);
 		mesh.name = meshName;
 		mesh.castShadow = true;
 		mesh.receiveShadow = true;
@@ -155,6 +179,9 @@ function createNamedMesh(meshName){
 				+'		<a href="#" data-name="'+meshName+'" data-type="0" onclick="changeOpacity(this); return false;" class="opacity_0"></a>'
 				+'	</div>'
 				+'	<span class="text_on_dropdown">'+meshName+'</span>'
+				+'	<a href="#" data-name="'+meshName+'" data-color="0xff0000" onclick="changeColor(this)">Красный</a>'
+				+'	<a href="#" data-name="'+meshName+'" data-color="0xFF8243" onclick="changeColor(this)">Оранжевый</a>'
+				+'	<a href="#" data-name="'+meshName+'" data-color="0xff00ff" onclick="changeColor(this)">Розовый</a>'
 				+'	<a href="#" data-name="'+meshName+'" onclick="deleteFile(this); return false;"><i class="fa fa-close ml-1"></i></a>';
 		li.innerHTML = editor;
 		stlFilesList.appendChild(li);
@@ -183,6 +210,19 @@ function setTransparent(elName, type){
 	render();
 }
 
+function changeColor(el){
+	var element = el.getAttribute('data-name'),
+		color = el.getAttribute('data-color');
+	
+		console.log(color)
+	setColor(element, color);
+}
+
+function setColor(elName, color){
+	var editedObject = mainGroup.getObjectByName(elName);
+	editedObject.material.color.setHex( color );
+}
+
 function removeElement(elName){
 	var selectedObject = mainGroup.getObjectByName(elName);
 	mainGroup.remove( selectedObject );
@@ -191,6 +231,7 @@ function removeElement(elName){
 
 function calcCenter(){
 	centerPoint = {x: 0, y: 0, z: 0, xArray: [], yArray: [], zArray: []};
+	console.log(mainGroup);
 	for(var i=0; i<mainGroup.children.length; i++){
 		centerPoint.xArray.push(mainGroup.children[i].geometry.boundingSphere.center.x);
 		centerPoint.yArray.push(mainGroup.children[i].geometry.boundingSphere.center.y);
@@ -205,8 +246,8 @@ function calcCenter(){
 	if(centerPoint.zArray.length){
 		centerPoint.z = -[].reduce.call(centerPoint.zArray, function(p,c){return c+p;}) / centerPoint.zArray.length;
 	}
-
-	mainGroup.position.set( centerPoint.x, centerPoint.z, centerPoint.y );
+	//console.log(centerPoint);
+	mainGroup.position.set( centerPoint.x, centerPoint.y, centerPoint.z );
 }
 
 // Resize
