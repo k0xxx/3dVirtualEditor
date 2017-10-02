@@ -14,24 +14,24 @@ function init(){
 	
 	// Обьявление камеры
 	camera = new THREE.PerspectiveCamera(45, rendererContainer.clientWidth / rendererContainer.clientHeight, 1, 1000);
-	camera.position.set(-200, 200, 100);
+	camera.position.set(-100, 100, 100);
 	camera.lookAt(scene.position);
 	
 	// Добавление осей координат (Опционально)
-	var axes = new THREE.AxisHelper( 20 );
-	scene.add(axes);
+	//var axes = new THREE.AxisHelper( 20 );
+	//scene.add(axes);
 
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({ alpha: true });
 	renderer.setSize( rendererContainer.clientWidth, rendererContainer.clientHeight );
 	rendererContainer.appendChild(renderer.domElement);
-	renderer.setClearColor(0x423C63);
-
+	renderer.setClearColor(0x423C63, 0);
+	
 	// Добавление управления
 	/*controls = new THREE.OrbitControls( camera, renderer.domElement );
 	controls.addEventListener( 'change', render );
 	controls.enableZoom = true;*/
 	
-	controls = new THREE.TrackballControls( camera );
+	controls = new THREE.TrackballControls( camera, rendererContainer );
 	controls.rotateSpeed = 4.0;
 	controls.zoomSpeed = 4.0;
 	controls.panSpeed = 0.8;
@@ -39,7 +39,7 @@ function init(){
 	controls.noPan = false;
 	controls.staticMoving = true;
 	controls.dynamicDampingFactor = 0.3;
-	controls.keys = [ 65, 83, 68 ];
+	//controls.keys = [ 65, 83, 68 ];
 	controls.addEventListener( 'change', render );
 
 
