@@ -24,7 +24,8 @@ function init(){
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize( rendererContainer.clientWidth, rendererContainer.clientHeight );
 	rendererContainer.appendChild(renderer.domElement);
-	
+	renderer.setClearColor(0x423C63);
+
 	// Добавление управления
 	controls = new THREE.OrbitControls( camera, renderer.domElement );
 	controls.addEventListener( 'change', render );
@@ -33,11 +34,17 @@ function init(){
 	//Добавление источников света
 	addLight();
 
+	// Добавление основной группы
 	mainGroup = new THREE.Group();
 	mainGroup.updateMatrixWorld(true);
 	scene.add(mainGroup);
-
-	//refreshStlFilesList();
+	
+	// Проверка пред загруженных файлов
+	if(stlFiles){
+		for(var i=0; i<stlFiles.length; i++){
+			addToMainMesh(stlFiles[i]);
+		}
+	}
 }
 
 // Ререндеринг сцены
@@ -52,21 +59,14 @@ function animate () {
 	renderer.render(scene, camera);
 };
 
-/*
-var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-var cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
-*/
-
 // Добавить файл c локального диска
 function getFile() {
-	var file = document.getElementById('stlFile').files[0];
+	var file = document.getElementById('stl-file-upload').files[0];
 	var reader = new FileReader();
 
 	reader.onloadend = function (file) {
 		addFile(reader.result, reader.fileName);
-		document.getElementById('stlFile').value = '';
+		document.getElementById('stl-file-upload').value = '';
 	}
 		
 	if (file) {
@@ -102,23 +102,6 @@ function addFile(url, name){
 		stlFiles.push(stlFile);
 	}
 	addToMainMesh(stlFile);
-	//refreshStlFilesList();
-}
-
-// Обновление списка добавленых файлов
-function refreshStlFilesList(){
-	var stlFilesList = document.getElementById('stlFilesList');
-	stlFilesList.innerHTML = '';
-	//mainGroup.children = [];
-	for(var i = 0; i<stlFiles.length; i++){
-		var li = document.createElement('li');
-		var editor = '<span>'+stlFiles[i].name+'</span>'
-					+'<a href="#" onclick="setTransparent(this)">Включить прозрачность</a>';
-		li.innerHTML = editor;
-		stlFilesList.appendChild(li);
-		//addToMainMesh({url: stlFiles.url, name: stlFiles.name});
-	}
-	//refreshModels();
 }
 
 // Добавление света
@@ -145,65 +128,64 @@ function addLight(){
 	scene.add(directionalLight7)
 }
 
-//addToMainMesh({url: 'models/up.stl', name: 'up'});
-//addToMainMesh({url: 'models/low.stl', name: 'low'});
 // Добавление файла в MainMesh
 function addToMainMesh(stlFile){
 	var loader = new THREE.STLLoader();
 	loader.load(stlFile.url, createNamedMesh(stlFile.name));
 }
+
 // Создание меша с именем
 function createNamedMesh(meshName){
 	return function(geometry) {
 		var material = new THREE.MeshPhongMaterial({color: 0xFF8243, specular: 0x111111, shininess: 200});
-		//var material = new THREE.MeshNormalMaterial();
-		//console.log(geometry);
+		
 		var mesh = new THREE.Mesh(geometry, material);
 		mainGroup.add(mesh);
 		mesh.rotation.set(-Math.PI/2, 0, Math.PI);
 		mesh.name = meshName;
 		mesh.castShadow = true;
 		mesh.receiveShadow = true;
-		console.log(meshName);
+		
 		var stlFilesList = document.getElementById('stlFilesList');
 		var li = document.createElement('li');
-		var editor = '<span>'+meshName+'</span>'
-					+'<a href="#" data-name="'+meshName+'" data-transparent="false" onclick="setTransparent(this); return false;">Включить прозрачность</a>';
+		li.className = "stlFileItem";
+		var editor = '<div class="stlFileControls">'
+				+'		<a href="#" data-name="'+meshName+'" data-type="1" onclick="changeOpacity(this); return false;" class="opacity_1 active"></a>'
+				+'		<a href="#" data-name="'+meshName+'" data-type="05" onclick="changeOpacity(this); return false;" class="opacity_0_5"></a>'
+				+'		<a href="#" data-name="'+meshName+'" data-type="0" onclick="changeOpacity(this); return false;" class="opacity_0"></a>'
+				+'	</div>'
+				+'	<span class="text_on_dropdown">'+meshName+'</span>'
+				+'	<a href="#" data-name="'+meshName+'" onclick="deleteFile(this); return false;"><i class="fa fa-close ml-1"></i></a>';
 		li.innerHTML = editor;
 		stlFilesList.appendChild(li);
-		/*mesh.position.set(0, 0, 0);
-		//mesh.scale.set(0.5, 0.5, 0.5);
-		
-	stlFilesList.innerHTML = '';
-	//mainGroup.children = [];
-	for(var i = 0; i<stlFiles.length; i++){
-		
-		
-		//addToMainMesh({url: stlFiles.url, name: stlFiles.name});
-	}
-		meshesList[meshName] = mesh;
-		mainMesh.add(mesh);*/
+
 		render();
 	};
 }
 
-function setTransparent(el){
-	var elName = el.getAttribute('data-name'); 
-	var isTransparent = el.getAttribute('data-transparent'); 
+function setTransparent(elName, type){
 	var editedObject = mainGroup.getObjectByName(elName);
-	if(isTransparent == 'true'){
-		editedObject.material.transparent = false;
-		editedObject.material.opacity = 1;
-		el.setAttribute('data-transparent', 'false');
-		el.innerHTML = 'Включить прозрачность';
-	}else{
-		editedObject.material.transparent = true;
-		editedObject.material.opacity = 0.5;
-		el.setAttribute('data-transparent', 'true');
-		el.innerHTML = 'Выключить прозрачность';
+	switch(type){
+		case '1': 
+			editedObject.material.transparent = false;
+			editedObject.material.opacity = 1;
+			editedObject.visible = true;
+			break;
+		case '05': 
+			editedObject.material.transparent = true;
+			editedObject.material.opacity = 0.5;
+			editedObject.visible = true;
+			break;
+		case '0': 
+			editedObject.visible = false;
+			break;
 	}
-	
-	
+	render();
+}
+
+function removeElement(elName){
+	var selectedObject = mainGroup.getObjectByName(elName);
+	mainGroup.remove( selectedObject );
 	render();
 }
 
@@ -226,3 +208,16 @@ function calcCenter(){
 
 	mainGroup.position.set( centerPoint.x, centerPoint.z, centerPoint.y );
 }
+
+// Resize
+window.addEventListener('resize', onWindowResize, false);
+function onWindowResize() {
+	if(camera && renderer) {
+		camera.aspect = rendererContainer.clientWidth / rendererContainer.clientHeight;
+		camera.updateProjectionMatrix();
+		renderer.setSize(rendererContainer.clientWidth, rendererContainer.clientHeight);
+	}
+}
+
+// Для добавление откуда угодно вызов следующей функции
+//addToMainMesh({url: 'models/low.stl', name: 'low'});
