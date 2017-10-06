@@ -1,7 +1,7 @@
 // Проверка webgl
 if(!Detector.webgl) Detector.addGetWebGLMessage();
 // Объявление сцены, камеры, управления, визуализатора
-var scene, camera, controls, renderer, rendererContainer;
+var scene, camera, controls, directionalLight, renderer, rendererContainer;
 var mainGroup;
 var centerPoint = {x: 0, y: 0, z: 0, xArray: [], yArray: [], zArray: []};
 init();
@@ -18,8 +18,8 @@ function init(){
 	camera.lookAt(scene.position);
 	
 	// Добавление осей координат (Опционально)
-	//var axes = new THREE.AxisHelper( 20 );
-	//scene.add(axes);
+	var axes = new THREE.AxisHelper( 20 );
+	scene.add(axes);
 
 	renderer = new THREE.WebGLRenderer({ alpha: true });
 	renderer.setSize( rendererContainer.clientWidth, rendererContainer.clientHeight );
@@ -63,6 +63,7 @@ function init(){
 // Ререндеринг сцены
 function render() {
 	renderer.render( scene, camera );
+	directionalLight.position.copy( camera.position );
 	calcCenter();
 }
 
@@ -120,26 +121,53 @@ function addFile(url, name){
 
 // Добавление света
 function addLight(){
-	var directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
+	/*var HemisphereLight = new THREE.HemisphereLight(0xffffff, 0x878787, 1);
+	scene.add( HemisphereLight );*/
+	
+	
+
+	directionalLight = new THREE.DirectionalLight( 0xffffff, 0.9 );
+    //directionalLight.position = camera.position;
+	scene.add(directionalLight);
+	
+	var light = new THREE.AmbientLight( 0x282828 ); // soft white light
+	scene.add( light );
+	/*
+	var directionalLight1 = new THREE.DirectionalLight(0xdddddd, 0.2);
 	directionalLight1.position.set(0, 0, 1);
 	scene.add(directionalLight1);
-	var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+
+	var directionalLight2 = new THREE.DirectionalLight(0xdddddd, 0.2);
 	directionalLight2.position.set(0, 1, 0);
 	scene.add(directionalLight2);
-	var directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.5);
+	
+	var directionalLight3 = new THREE.DirectionalLight(0xdddddd, 0.2);
 	directionalLight3.position.set(1, 0, 0);
 	scene.add(directionalLight3);
-	var directionalLight4 = new THREE.DirectionalLight(0xffffff, 0.5);
+	
+	var directionalLight4 = new THREE.DirectionalLight(0xdddddd, 0.5);
 	directionalLight4.position.set(0, 0, -1);
 	scene.add(directionalLight4);
-	var directionalLight5 = new THREE.DirectionalLight(0xffffff, 0.5);
+	var directionalLight5 = new THREE.DirectionalLight(0xdddddd, 0.5);
 	directionalLight5.position.set(0, -1, 0);
 	scene.add(directionalLight5);
-	var directionalLight6 = new THREE.DirectionalLight(0xffffff, 0.5);
+	var directionalLight6 = new THREE.DirectionalLight(0xdddddd, 0.5);
 	scene.add(directionalLight6);
-	directionalLight6.position.set(-1, 0, 0);
-	var directionalLight7 = new THREE.HemisphereLight(0xffffff, 0x080820, 0.5);
-	scene.add(directionalLight7)
+	directionalLight6.position.set(-1, 0, 0);*/
+	
+	/*var directionalLight1 = new THREE.DirectionalLight(0xdddddd, 0.5);
+	directionalLight1.position.set(1, 0, 1);
+	scene.add(directionalLight1);
+
+	/*var directionalLight2 = new THREE.DirectionalLight(0xdddddd, 0.5);
+	directionalLight2.position.set(0, 1, 0);
+	scene.add(directionalLight2);
+
+	var directionalLight2 = new THREE.DirectionalLight(0xdddddd, 0.5);
+	directionalLight2.position.set(0, 0, 1);
+	scene.add(directionalLight2);
+	/*var directionalLight7 = new THREE.HemisphereLight(0xffffff, 0x080820, 0.5);
+	scene.add(directionalLight7)*/
 }
 
 // Добавление файла в MainMesh
@@ -155,7 +183,7 @@ function createNamedMesh(meshName){
 		
 		geometry.computeBoundingSphere();
 
-		var material = new THREE.MeshPhongMaterial({color: 0xFF8243, specular: 0x111111, shininess: 200});
+		var material = new THREE.MeshPhongMaterial({color: 0xFF8243, specular: 0x111111, shininess: 30});
 		
 		var mesh = new THREE.Mesh(geometry, material);
 		mainGroup.add(mesh);
@@ -179,9 +207,9 @@ function createNamedMesh(meshName){
 				+'		<a href="#" data-name="'+meshName+'" data-type="0" onclick="changeOpacity(this); return false;" class="opacity_0"></a>'
 				+'	</div>'
 				+'	<span class="text_on_dropdown">'+meshName+'</span>'
-				+'	<a href="#" data-name="'+meshName+'" data-color="0xff0000" onclick="changeColor(this)">Красный</a>'
+				+'	<a href="#" data-name="'+meshName+'" data-color="0xDB7093" onclick="changeColor(this)">Розовый</a>'
 				+'	<a href="#" data-name="'+meshName+'" data-color="0xFF8243" onclick="changeColor(this)">Оранжевый</a>'
-				+'	<a href="#" data-name="'+meshName+'" data-color="0xff00ff" onclick="changeColor(this)">Розовый</a>'
+				+'	<a href="#" data-name="'+meshName+'" data-color="0x7851A9" onclick="changeColor(this)">Фиолетовый</a>'
 				+'	<a href="#" data-name="'+meshName+'" onclick="deleteFile(this); return false;"><i class="fa fa-close ml-1"></i></a>';
 		li.innerHTML = editor;
 		stlFilesList.appendChild(li);
@@ -200,7 +228,7 @@ function setTransparent(elName, type){
 			break;
 		case '05': 
 			editedObject.material.transparent = true;
-			editedObject.material.opacity = 0.5;
+			editedObject.material.opacity = 0.65;
 			editedObject.visible = true;
 			break;
 		case '0': 
